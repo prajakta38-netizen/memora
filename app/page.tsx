@@ -51,7 +51,8 @@ export default function HomePage() {
 
       if (dbError) throw dbError
 
-      const link = `${window.location.origin}/video/${uniqueId}`
+      // ✅ FIX: Use your live Vercel URL
+      const link = `https://memora.vercel.app/video/${uniqueId}`
       setVideoLink(link)
 
       setTitle('')
