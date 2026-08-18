@@ -39,8 +39,9 @@ export default function HomePage() {
 
       const uniqueId = generateId()
 
+      // ✅ CORRECT: Table name is 'video'
       const { error: dbError } = await supabase
-        .from('videos')
+        .from('video')
         .insert({
           id: uniqueId,
           title: title,
@@ -51,7 +52,7 @@ export default function HomePage() {
 
       if (dbError) throw dbError
 
-      // ✅ FIX: Use your live Vercel URL
+      // ✅ Use your live Vercel URL
       const link = `https://memora.vercel.app/video/${uniqueId}`
       setVideoLink(link)
 
