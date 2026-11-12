@@ -1,9 +1,12 @@
 import type { Metadata } from 'next'
 import './globals.css'
 
+// ✅ Import the console disabler
+import '@/lib/disable-console'
+
 export const metadata: Metadata = {
-  title: 'Memora - Upload & Share Videos',
-  description: 'Upload a video, get a link, share it with anyone',
+  title: 'Memora',
+  description: 'Upload and share video memories',
 }
 
 export default function RootLayout({
