@@ -90,48 +90,19 @@ export default function HomePage() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // ✅ Check session on page load - FORCE session check
+  // ✅ Check user on page load
   useEffect(() => {
     const getUser = async () => {
-      try {
-        // Check if session exists
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (session) {
-          setUser(session.user)
-        } else {
-          setUser(null)
-        }
-      } catch (error) {
-        setUser(null)
-      } finally {
-        setLoading(false)
-      }
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+      setLoading(false)
     }
-    
     getUser()
-
-    // ✅ Listen for auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session) {
-          setUser(session.user)
-        } else {
-          setUser(null)
-        }
-        setLoading(false)
-      }
-    )
-
-    return () => {
-      authListener?.subscription.unsubscribe()
-    }
   }, [])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
     setUser(null)
-    // Force redirect to login
     router.push('/login')
   }
 
@@ -170,6 +141,7 @@ export default function HomePage() {
 
       const uniqueId = generateId()
 
+      // ✅ Insert into 'video' table (matches your database)
       const { error: dbError } = await supabase
         .from('video')
         .insert({
@@ -182,6 +154,7 @@ export default function HomePage() {
 
       if (dbError) throw dbError
 
+      // ✅ Generate the live URL
       const link = `https://memora-sigma-gules.vercel.app/m/${uniqueId}`
       setVideoLink(link)
 
@@ -205,7 +178,6 @@ export default function HomePage() {
     alert('✅ Link copied to clipboard!')
   }
 
-  // ✅ Show loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] to-[#f0ede8] flex items-center justify-center">
@@ -214,7 +186,7 @@ export default function HomePage() {
     )
   }
 
-  // ✅ If no user, show login page
+  // 🔒 If no user, show login prompt
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] to-[#f0ede8] flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -222,7 +194,7 @@ export default function HomePage() {
         <div className="relative z-10 text-center max-w-md">
           <div className="text-[#C9A84C] text-6xl font-serif mb-4 animate-float">✦</div>
           <h1 className="text-4xl font-serif text-[#1a1a2e] mb-4">Memora</h1>
-          <p className="text-[#4a4a5e] mb-8 text-lg">Please login to upload videos</p>
+          <p className="text-[#4a4a5e] mb-8 text-lg">Please login to continue</p>
           <a
             href="/login"
             className="inline-block px-8 py-4 bg-[#C9A84C] text-white font-semibold rounded-2xl hover:bg-[#b8983a] transition-all duration-300 shadow-lg shadow-[#C9A84C]/30 hover:shadow-xl hover:scale-105"
@@ -234,24 +206,35 @@ export default function HomePage() {
     )
   }
 
-  // ✅ User is logged in - show upload page
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] to-[#f0ede8] flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
       
       <div className="relative z-10 max-w-lg w-full">
+        {/* ✅ Updated Header with Navigation Buttons */}
         <div className="text-center mb-8">
           <div className="text-[#C9A84C] text-5xl font-serif mb-2 animate-float">✦</div>
-          <h1 className="text-4xl font-serif text-[#1a1a2e]">Memora</h1>
+          <h1 className="text-3xl font-serif text-[#1B1B2F]">Memora</h1>
           <p className="text-[#4a4a5e] text-sm mt-1">Upload video → Get link → Share</p>
-          <button
-            onClick={handleLogout}
-            className="mt-3 text-xs text-[#8a8a9e] hover:text-[#C9A84C] transition-colors duration-300"
-          >
-            Logout
-          </button>
+          
+          {/* ✅ NEW BUTTONS */}
+          <div className="mt-4 flex justify-center gap-3">
+            <a
+              href="/dashboard"
+              className="px-5 py-2 bg-[#C9A84C] text-white rounded-xl hover:bg-[#b8983a] transition text-sm font-semibold shadow-md shadow-[#C9A84C]/30"
+            >
+              🏠 My Dashboard
+            </a>
+            <button
+              onClick={handleLogout}
+              className="px-5 py-2 bg-white/60 border border-[#e8e4de] text-[#1B1B2F] rounded-xl hover:border-[#C9A84C] transition text-sm"
+            >
+              Logout
+            </button>
+          </div>
         </div>
 
+        {/* Upload Form */}
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-[#C9A84C]/10 border border-white/50 p-8">
           <form onSubmit={handleUpload} className="space-y-5">
             <div>
@@ -288,6 +271,7 @@ export default function HomePage() {
           </form>
         </div>
 
+        {/* Success Link */}
         {videoLink && (
           <div className="mt-6 bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-[#C9A84C]/20 border border-white/50 p-6 animate-slide-up">
             <p className="text-sm text-[#4a4a5e] mb-3">✅ Your video link is ready!</p>
